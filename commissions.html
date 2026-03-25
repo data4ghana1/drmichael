@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Commissions & Pricing — Coming Soon</title>
+
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/menu.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/security.js"></script>
+    <meta name="theme-color" content="#0b1220">
+
+    <style>
+        /* ── Coming Soon Page ── */
+        .cs-wrapper {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+
+        .cs-card {
+            background: linear-gradient(135deg, #0f172a 0%, #060d1a 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 32px;
+            padding: 64px 48px;
+            max-width: 620px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+            animation: fadeUp 0.6s ease-out forwards;
+        }
+
+        /* Ambient glow blobs */
+        .cs-card::before {
+            content: '';
+            position: absolute;
+            top: -120px; right: -120px;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .cs-card::after {
+            content: '';
+            position: absolute;
+            bottom: -120px; left: -120px;
+            width: 360px; height: 360px;
+            background: radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Animated pulsing icon */
+        .cs-icon-ring {
+            width: 96px; height: 96px;
+            border-radius: 50%;
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.3);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 32px;
+            position: relative; z-index: 1;
+            animation: pulse 2.8s ease-in-out infinite;
+        }
+        .cs-icon-ring svg { color: #60a5fa; }
+
+        .cs-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.35);
+            padding: 6px 16px;
+            border-radius: 100px;
+            color: #a5b4fc;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 24px;
+            position: relative; z-index: 1;
+        }
+        .cs-badge span { width: 6px; height: 6px; border-radius: 50%; background: #a5b4fc; animation: blink 1.4s ease-in-out infinite; }
+
+        .cs-title {
+            font-size: 40px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -1px;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            position: relative; z-index: 1;
+        }
+
+        .cs-subtitle {
+            color: #94a3b8;
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 40px;
+            position: relative; z-index: 1;
+        }
+
+        /* Feature preview pills */
+        .cs-features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 40px;
+            position: relative; z-index: 1;
+        }
+        .cs-feature-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 100px;
+            padding: 8px 16px;
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .cs-feature-pill svg { color: #60a5fa; flex-shrink: 0; }
+
+        .cs-divider {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(99,102,241,0.6), transparent);
+            margin: 0 auto 36px;
+            position: relative; z-index: 1;
+        }
+
+        .cs-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(59,130,246,0.3);
+            color: #93c5fd;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            position: relative; z-index: 1;
+        }
+        .cs-back-btn:hover {
+            background: rgba(59,130,246,0.28);
+            border-color: rgba(59,130,246,0.5);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59,130,246,0.25);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.25); }
+            50%       { box-shadow: 0 0 0 16px rgba(59,130,246,0); }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        @media (max-width: 520px) {
+            .cs-card  { padding: 48px 28px; }
+            .cs-title { font-size: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu-container"></div>
+    <button class="menu-btn" onclick="openMenu()">☰</button>
+
+    <div class="main-wrapper">
+        <div class="cs-wrapper">
+            <div class="cs-card">
+
+                <!-- Pulsing Icon -->
+                <div class="cs-icon-ring">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                </div>
+
+                <!-- Badge -->
+                <div class="cs-badge">
+                    <span></span> In development
+                </div>
+
+                <!-- Heading -->
+                <h1 class="cs-title">Commissions &amp;<br>Pricing — Coming Soon</h1>
+
+                <p class="cs-subtitle">
+                    We're building a powerful commission dashboard for Data4Ghana agents.
+                    Track your earnings, view per-bundle payouts, and maximize your profit — all in one place.
+                </p>
+
+                <div class="cs-divider"></div>
+
+                <!-- Feature Preview -->
+                <div class="cs-features">
+                    <div class="cs-feature-pill">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        MTN commission rates
+                    </div>
+                    <div class="cs-feature-pill">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Telecel commission rates
+                    </div>
+                    <div class="cs-feature-pill">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Live payout tracker
+                    </div>
+                    <div class="cs-feature-pill">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Profit analytics
+                    </div>
+                </div>
+
+                <!-- Back button -->
+                <a href="menu.html" class="cs-back-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    Back to Dashboard
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth-guard.js"></script>
+    <script src="js/menu.js"></script>
+
+</body>
+</html>

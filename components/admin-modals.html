@@ -1,0 +1,85 @@
+<!-- components/admin-modals.html -->
+
+<!-- Wallet Control Modal -->
+<div id="walletControlModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+    <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:400px; padding:24px; position:relative;">
+        <button onclick="closeWalletControlModal()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+        <h3 style="margin-top:0; margin-bottom:8px;">Wallet Adjustment</h3>
+        
+        <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+            <div>
+                <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Select User</label>
+                <div style="position:relative;">
+                    <input type="text" id="walletControlUserSearch" oninput="filterWalletUsers()" onfocus="filterWalletUsers()" placeholder="Search phone, email, or ID..." style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; outline:none; font-size:14px;">
+                    <input type="hidden" id="walletControlUserSelect">
+                    <div id="walletControlUserResults" style="display:none; position:absolute; top:100%; left:0; right:0; max-height:200px; overflow-y:auto; background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:6px; z-index:1000; margin-top:4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);"></div>
+                </div>
+            </div>
+            
+            <div>
+                <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Current Balance</label>
+                <div id="walletControlCurrentBal" style="font-size:24px; font-weight:800; color:white;">₵0.00</div>
+            </div>
+
+            <div>
+                <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Action Type</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <button id="btnCreditToggle" onclick="setWalletAction('credit')" style="background:rgba(16,185,129,0.1); border:1px solid #10b981; color:#10b981; padding:10px; border-radius:6px; cursor:pointer; font-weight:600;">Credit (+)</button>
+                    <button id="btnDebitToggle" onclick="setWalletAction('debit')" style="background:rgba(239,68,68,0.1); border:1px solid var(--glass-border); color:var(--text-muted); padding:10px; border-radius:6px; cursor:pointer; font-weight:600;">Debit (-)</button>
+                </div>
+            </div>
+            
+            <div>
+                <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Amount (₵)</label>
+                <input type="number" id="walletControlAmount" placeholder="0.00" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; outline:none; font-size:16px;">
+            </div>
+            
+            <button onclick="executeWalletAdjustment()" id="btnExecuteWallet" style="background:var(--blue); border:none; color:white; padding:12px; border-radius:6px; font-weight:600; cursor:pointer; margin-top:8px;">Confirm Adjustment</button>
+        </div>
+    </div>
+</div>
+
+<!-- User Transactions Modal -->
+<div id="userTransactionsModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+    <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:850px; padding:24px; position:relative; max-height:90vh; display:flex; flex-direction:column;">
+        <button onclick="closeUserTransactionsModal()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+        <h3 style="margin-top:0; margin-bottom:8px; font-size:18px;">Transaction Ledger</h3>
+        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">User: <strong id="utmUserName" style="color:white;">-</strong></div>
+        
+        <div style="display:flex; gap:16px; border-bottom:1px solid var(--glass-border); margin-bottom:16px;">
+            <button id="utTabOrders" onclick="switchUtTab('orders')" style="background:none; border:none; color:white; padding:8px 0; font-weight:600; cursor:pointer; border-bottom:2px solid var(--blue);">Bundle Orders</button>
+            <button id="utTabWallets" onclick="switchUtTab('wallets')" style="background:none; border:none; color:var(--text-muted); padding:8px 0; font-weight:600; cursor:pointer; border-bottom:2px solid transparent;">Wallet Ledger</button>
+        </div>
+
+        <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; min-height:40vh;">
+            <div id="utViewOrders" style="flex:1; overflow:auto;">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="utOrdersBody"></tbody>
+                </table>
+            </div>
+            <div id="utViewWallets" style="display:none; flex:1; overflow:auto;">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Reference</th>
+                            <th>Type</th>
+                            <th>Amount & History</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="utWalletsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

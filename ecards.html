@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Cards | Data4Ghana</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/ecards.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/security.js"></script>
+
+  <meta name="theme-color" content="#0b1220">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Data4Ghana">
+  <link rel="manifest" href="/manifest.json">
+</head>
+
+<body class="ecards-page">
+
+  <button class="menu-btn" onclick="openMenu()">☰</button>
+  <div id="menu-container"></div>
+
+  <div class="ecards-container">
+
+    <!-- Hero Header -->
+    <div class="ecards-hero">
+      <div class="hero-left">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 12px;">
+            <a href="dashboard.html" class="ec-kicker" style="text-decoration: none; cursor: pointer; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #94a3b8; margin-bottom: 0;">Menu</a>
+            <span class="ec-kicker" style="margin-bottom: 0;">E-Cards Center</span>
+        </div>
+        <h2>Examination E-Cards</h2>
+        <p class="ec-subtitle">Select your examination type, enter the candidate's phone number, and purchase instantly from your wallet.</p>
+      </div>
+      <div class="hero-right">
+        <div class="ec-wallet-badge">
+          Wallet Balance
+          <strong id="ecWalletDisplay">₵0.00</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Selection -->
+    <div class="ec-options">
+
+      <!-- WASSCE Card -->
+      <button class="ec-card wassce" onclick="openModal('wassce')">
+        <div class="ec-tier-badge">West Africa</div>
+        <div class="ec-card-icon">🎓</div>
+        <h4>WASSCE</h4>
+        <span class="ec-price wassce-price-label">Loading...</span>
+        <p>West Africa Senior School Certificate Examination — results checker e-card for WASSCE candidates.</p>
+        <ul class="ec-benefits">
+          <li>Instant PIN delivery</li>
+          <li>Valid all WAEC portals</li>
+          <li>Check unlimited subjects</li>
+        </ul>
+        <span class="ec-cta">Purchase WASSCE Card →</span>
+      </button>
+
+      <!-- BECE Card -->
+      <button class="ec-card bece" onclick="openModal('bece')">
+        <div class="ec-tier-badge">Ghana Education</div>
+        <div class="ec-card-icon">📋</div>
+        <h4>BECE</h4>
+        <span class="ec-price bece-price-label">Loading...</span>
+        <p>Basic Education Certificate Examination — results checker e-card for BECE candidates.</p>
+        <ul class="ec-benefits">
+          <li>Instant PIN delivery</li>
+          <li>Valid on MoE portal</li>
+          <li>Check all subjects</li>
+        </ul>
+        <span class="ec-cta">Purchase BECE Card →</span>
+      </button>
+
+    </div>
+
+    <!-- Order History -->
+    <div class="ec-history-section">
+      <h3 class="ec-history-title">Recent E-Card Orders</h3>
+      <div class="ec-table-wrap">
+        <table class="ec-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Order Details</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ecardsHistoryBody">
+            <tr><td colspan="5" style="text-align:center; padding:28px; color:#94a3b8;">Loading history...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Purchase Modal ── -->
+  <div id="ecardModal" class="ec-modal-overlay" style="display:none;" onclick="closeModal(event)">
+    <div class="ec-modal">
+      <button class="ec-modal-close" onclick="closeModalDirect()">✕</button>
+
+      <div class="ec-modal-icon" id="modalIcon">🎓</div>
+      <h3 id="modalTitle">Purchase WASSCE E-Card</h3>
+      <p id="modalDesc" class="ec-modal-desc">Confirm purchase and a PIN will be instantly revealed to you.</p>
+
+      <div class="ec-modal-price-badge">
+        Price: <strong id="modalPrice">₵0.00</strong> &nbsp;|&nbsp; Your Balance: <strong id="modalBalance">₵0.00</strong>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 20px;">
+        <label for="candidatePhone">Recipient Phone Number</label>
+        <input type="tel" id="candidatePhone" placeholder="024XXXXXXX" maxlength="10">
+      </div>
+
+      <div id="ecModalError" class="ec-error" style="display:none;"></div>
+
+      <button class="ec-submit-btn" id="ecSubmitBtn" onclick="submitEcard()">
+        <span id="ecSubmitText">Confirm Purchase</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Success Toast ── -->
+  <div id="ecSuccessToast" class="ec-toast" style="display:none;">
+    ✅ E-Card purchased successfully! PIN sent to the provided number.
+  </div>
+
+  <script src="js/menu.js"></script>
+  <script src="js/ecards.js"></script>
+  <script src="js/pwa-install.js"></script>
+</body>
+
+</html>

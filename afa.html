@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AFA PORTAL</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/afa.css">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- Supabase Database Connection -->
+  <script src="js/supabase.js"></script>
+  <script src="js/security.js"></script>
+
+    <meta name="theme-color" content="#0b1220">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Data4Ghana">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+</head>
+
+<body class="afa-page afa-route-page">
+
+  <button class="menu-btn" onclick="openMenu()">☰</button>
+
+  <div id="menu-container"></div>
+
+    <div class="afa-hero normal">
+      <div class="hero-content">
+        <a href="dashboard.html" class="back-dashboard-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back to Dashboard
+        </a>
+        <h1>AFA Services Portal</h1>
+
+        <p>Choose the execution lane that matches your client profile and delivery timeline.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-label">Wallet Balance</span>
+          <span class="stat-value" id="afaWalletDisplay">₵0.00</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-label">Normal ETA</span>
+          <span class="stat-value">24-48h</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-premium">
+      <!-- PRODUCT TIERS -->
+      <div class="afa-options">
+  
+        <div class="afa-card premium-tier" onclick="window.location.href='afa-premium.html'">
+          <div class="tier-header">
+            <h4>Premium AFA</h4>
+          </div>
+          <p>Instant account setup with priority processing and zero document friction.</p>
+          <ul class="route-benefits">
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Instant Activation</li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> No Document Upload</li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Retail Ready</li>
+          </ul>
+          <div class="route-cta-premium">Select Premium</div>
+        </div>
+
+        <div class="afa-card standard-tier" onclick="window.location.href='afa-normal.html'">
+          <div class="tier-header">
+            <h4>Standard AFA</h4>
+          </div>
+          <p>Structured onboarding with ID verification for controlled, compliant activations.</p>
+          <ul class="route-benefits">
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Cost-Effective</li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> ID Verified</li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Fully Compliant</li>
+          </ul>
+          <div class="route-cta-standard">Select Standard</div>
+        </div>
+  
+      </div>
+
+      <!-- HOW IT WORKS -->
+      <div class="workflow-container">
+        <div class="workflow-header">Simple Activation Process</div>
+        <div class="workflow-steps">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-label">Select Tier</div>
+          </div>
+          <div class="step-line"></div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-label">Enter Details</div>
+          </div>
+          <div class="step-line"></div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-label">Instant Ready</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <script src="js/menu.js"></script>
+
+  <script>
+    // Lightweight script to just fetch pricing & wallet for this routing page
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { window.location.href = 'login.html'; return; }
+
+        const { data: wData } = await supabase.from('users').select('wallet_balance, role').eq('id', user.id).single();
+        if (wData) {
+          document.getElementById('afaWalletDisplay').textContent = `₵${parseFloat(wData.wallet_balance || 0).toFixed(2)}`;
+
+          // If role is admin, use super_agent as fallback for pricing
+          const effectiveRole = wData.role === 'admin' ? 'super_agent' : (wData.role || 'client');
+
+          // Pricing is now statically defined in the cards above as per user request
+          /*
+          const { data: prices } = await supabase.from('pricing').select('product, price').eq('role', effectiveRole).in('product', ['afa_premium', 'afa_normal']);
+          if (prices && prices.length > 0) {
+            prices.forEach(p => {
+              if (p.product === 'afa_premium') {
+                const el = document.querySelector('.premium-price-label');
+                if (el) el.textContent = `₵${parseFloat(p.price).toFixed(2)}`;
+              }
+              if (p.product === 'afa_normal') {
+                const el = document.querySelector('.normal-price-label');
+                if (el) el.textContent = `₵${parseFloat(p.price).toFixed(2)}`;
+              }
+            });
+          }
+          */
+        }
+      } catch (e) {
+        console.error('AFA index error:', e);
+      }
+    });
+  </script>
+
+    <script src="js/pwa-install.js"></script>
+</body>
+
+</html>

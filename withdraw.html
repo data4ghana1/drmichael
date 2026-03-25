@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw Commission | Data4Ghana</title>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/menu.css">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/security.js"></script>
+    
+    <style>
+        /* Re-applying some dashboard styles to keep consistency while using Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1220;
+            color: white;
+            min-height: 100vh;
+        }
+        .main-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+        }
+    </style>
+</head>
+<body class="bg-[#0b1220]">
+
+    <div id="menu-container"></div>
+    <button class="menu-btn" onclick="openMenu()">☰</button>
+
+    <div class="main-wrapper">
+        <!-- Header Section -->
+        <div class="mb-10 text-center">
+            <h1 class="text-4xl font-extrabold tracking-tight text-white mb-4">Withdraw Commission 💸</h1>
+            <p class="text-slate-400 text-lg max-width-xl mx-auto">Transfer your hard-earned commissions directly to your Mobile Money wallet instantly.</p>
+        </div>
+
+        <!-- Commission Balance Display -->
+        <div class="glass-card p-8 mb-8 flex items-center justify-between border-l-4 border-blue-500">
+            <div>
+                <p class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">Available Commission</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold opacity-60">₵</span>
+                    <span id="commBalanceDisp" class="text-4xl font-extrabold">0.00</span>
+                </div>
+            </div>
+            <div class="bg-blue-500/10 p-4 rounded-2xl">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="text-blue-500" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
+            </div>
+        </div>
+
+        <!-- Coming Soon Placeholder -->
+        <div class="glass-card p-16 mb-8 text-center flex flex-col items-center justify-center relative overflow-hidden">
+            <!-- Decorative background glow -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px]"></div>
+            
+            <div class="bg-white/5 border border-white/10 p-6 rounded-full inline-flex mb-6 relative z-10 shadow-xl shadow-blue-500/10">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" class="text-blue-400" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight relative z-10 uppercase">Coming Soon</h2>
+            <p class="text-slate-400 text-lg max-w-md mx-auto relative z-10 leading-relaxed">
+                We are currently upgrading our automated withdrawal systems to process your commission payouts faster, safer, and more reliably.
+            </p>
+            <div class="mt-8 relative z-10">
+                <span class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-bold px-6 py-3 rounded-xl">
+                    <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                    Under Construction
+                </span>
+            </div>
+        </div>
+
+        <!-- Withdrawal History -->
+        <div class="glass-card overflow-hidden">
+            <div class="p-6 border-b border-white/5 bg-white/2 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Withdrawal History</h3>
+                <span class="text-xs text-slate-500 uppercase tracking-widest font-bold">Recent Requests</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-xs uppercase text-slate-500 border-b border-white/5">
+                            <th class="px-6 py-4 font-bold">Date</th>
+                            <th class="px-6 py-4 font-bold">Type</th>
+                            <th class="px-6 py-4 font-bold">Amount</th>
+                            <th class="px-6 py-4 font-bold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody" class="divide-y divide-white/5">
+                        <!-- History items injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="text-sm text-slate-500">Transfers are typically processed within 5-10 minutes.</p>
+        </div>
+    </div>
+
+    <!-- Auth & Logic Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Load current balance and history
+            await initPage();
+
+            const form = document.getElementById("withdrawForm");
+            if (form) {
+                const submitBtn = document.getElementById("submitBtn");
+                const btnText = document.getElementById("btnText");
+                const loader = document.getElementById("loader");
+                const typeRadios = form.querySelectorAll('input[name="withdraw_type"]');
+                const momoFields = document.getElementById("momoFields");
+
+                // Toggle MoMo specific fields
+                typeRadios.forEach(r => r.addEventListener('change', (e) => {
+                    if(e.target.value === 'WALLET') {
+                        momoFields.classList.add('hidden');
+                    } else {
+                        momoFields.classList.remove('hidden');
+                    }
+                }));
+
+                form.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                
+                // 1. Get Values
+                const amount = document.getElementById("amount").value;
+                const type = form.querySelector('input[name="withdraw_type"]:checked').value;
+                const network = form.querySelector('input[name="network"]:checked')?.value;
+                const phone = document.getElementById("phone").value;
+
+                // 2. Validate
+                if (type === 'MOMO' && (!network || !phone)) {
+                    alert("Please select a network and enter a phone number.");
+                    return;
+                }
+
+                // 3. Set Loading State
+                setLoading(true);
+
+                try {
+                    // Get session token for Auth
+                    const { data: { session } } = await window.supabase.auth.getSession();
+                    const token = session?.access_token;
+
+                    // Send request to backend
+                    const response = await fetch('/api/withdraw-commission', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ amount, network, phone, type })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        if(window.showSuccessPopup) {
+                            window.showSuccessPopup("Withdrawal Initiated!", "Your request has been sent to processing. You will receive an SMS once completed.");
+                        } else {
+                            alert("Withdrawal Initiated successfully!");
+                        }
+                        form.reset();
+                        await fetchCommissionBalance();
+                        await fetchWithdrawalHistory();
+                    } else {
+                        throw new Error(result.error || "Failed to process withdrawal");
+                    }
+                } catch (err) {
+                    console.error("Withdraw Error:", err);
+                    if(window.showErrorPopup) {
+                        window.showErrorPopup("Withdrawal Failed", err.message);
+                    } else {
+                        alert("Error: " + err.message);
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            });
+            }
+
+            function setLoading(isLoading) {
+                submitBtn.disabled = isLoading;
+                if (isLoading) {
+                    btnText.innerText = "Processing...";
+                    loader.classList.remove("hidden");
+                } else {
+                    btnText.innerText = "Initiate Withdrawal";
+                    loader.classList.add("hidden");
+                }
+            }
+
+            async function initPage() {
+                await fetchCommissionBalance();
+                await fetchWithdrawalHistory();
+            }
+
+            async function fetchCommissionBalance() {
+                if (!window.supabase) return;
+                const { data: { user } } = await window.supabase.auth.getUser();
+                if (!user) return;
+
+                const { data, error } = await window.supabase
+                    .from('users')
+                    .select('commission_balance')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (data && !error) {
+                    const bal = parseFloat(data.commission_balance || 0).toFixed(2);
+                    document.getElementById("commBalanceDisp").innerText = bal;
+                    document.getElementById("amount").max = bal;
+                }
+            }
+
+            async function fetchWithdrawalHistory() {
+                if (!window.supabase) return;
+                const { data: { user } } = await window.supabase.auth.getUser();
+                if (!user) return;
+
+                const { data, error } = await window.supabase
+                    .from('withdrawals')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+                
+                if (data && !error) {
+                    const tbody = document.getElementById("historyBody");
+                    tbody.innerHTML = data.map(item => `
+                        <tr class="text-sm font-medium">
+                            <td class="px-6 py-4 opacity-70">${new Date(item.created_at).toLocaleDateString()}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 rounded-md text-[10px] uppercase font-bold ${item.type === 'WALLET' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'}">
+                                    ${item.type}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 font-bold tracking-tight">₵ ${parseFloat(item.amount).toFixed(2)}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 rounded-md text-[10px] uppercase font-bold 
+                                    ${item.status === 'completed' ? 'bg-green-500/20 text-green-400' : 
+                                      item.status === 'failed' ? 'bg-red-500/20 text-red-400' : 
+                                      'bg-yellow-500/20 text-yellow-500'}">
+                                    ${item.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        });
+    </script>
+
+    <script src="js/auth-guard.js"></script>
+    <script src="js/menu.js"></script>
+
+</body>
+</html>
