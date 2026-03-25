@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Management | Data4Ghana Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    
+    <meta name="theme-color" content="#020817">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="D4G Admin">
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+</head>
+<body>
+    
+    <div id="admin-sidebar-container"></div>
+    
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+            
+            <div class="page-title-group" style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">API Management</h1>
+            </div>
+            
+            <div class="admin-profile" style="z-index: 2; position: relative;">
+                <!-- Button moved to central header for better visibility -->
+            </div>
+        </header>
+
+        <div id="tab-api" class="tab-content active" style="padding: 24px;">
+            <div class="minimal-header" style="text-align: center; margin-bottom: 32px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                <h3 style="margin:0;">VTU Routing Engine</h3>
+                <p style="margin:0; color:var(--text-muted); font-size:14px;">Manage external VTU APIs, handle network routing, and set active data ranges.</p>
+                <div style="display:flex; gap:12px;">
+                    <button onclick="openApiModal()" style="background:var(--blue); color:white; border:none; padding:10px 24px; border-radius:8px; font-weight:700; cursor:pointer; margin-top:8px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">+ Add API Endpoint</button>
+                    <button onclick="openAfaApiModal()" style="background:#10b981; color:white; border:none; padding:10px 24px; border-radius:8px; font-weight:700; cursor:pointer; margin-top:8px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">⚙️ AFA API Settings</button>
+                </div>
+            </div>
+
+            <div class="glass-table-wrapper" style="margin-top:20px;">
+                <div style="overflow-x: auto;">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Network</th>
+                                <th>Provider</th>
+                                <th>Base URL</th>
+                                <th>Data Range (GB)</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apiTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">Loading APIs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edge Function Configuration Modal -->
+    <div id="apiModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:480px; padding:24px; position:relative;">
+            <button onclick="closeApiModal()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 id="apiModalTitle" style="margin-top:0; font-size:18px;">API Endpoint Configuration</h3>
+            
+            <input type="hidden" id="apiId">
+            <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+                <div style="display:grid; grid-template-columns: 1fr; gap:16px;">
+                    <div style="display:none;">
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Display Name</label>
+                        <input type="text" id="apiName" placeholder="e.g. Data4Ghana" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Network Target</label>
+                        <select id="apiNetwork" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:13px;">
+                            <option value="MTN">MTN</option>
+                            <option value="Telecel">Telecel</option>
+                            <option value="Ishare">Ishare</option>
+                            <option value="Universal">Universal (All)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Provider Engine</label>
+                        <select id="apiProvider" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:13px;" onchange="toggleProviderSettings()">
+                            <option value="data4ghana">Data4Ghana System</option>
+                            <option value="jaybart">Justices</option>
+                            <option value="spfastit">SPFastIT API</option>
+                            <option value="datawavegh">Dennis</option>
+                            <option value="cleanheart">Since</option>
+                            <option value="iget">iGet API</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Provider Package ID <span style="font-weight:300;opacity:0.6;">(Optional)</span></label>
+                        <input type="text" id="apiPackageId" placeholder="e.g. 2" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:13px;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;" id="providerExtendedGrid">
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Provider Network ID <span style="font-weight:300;opacity:0.6;">(Optional)</span></label>
+                        <input type="text" id="apiNetworkId" placeholder="e.g. 1" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:13px;">
+                    </div>
+                    <div></div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Base URL</label>
+                    <input type="url" id="apiBaseUrl" placeholder="https://..." style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:13px;">
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">API Key</label>
+                    <input type="password" id="apiKey" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-family:monospace; font-size:13px;">
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Min Size (GB)</label>
+                        <input type="number" id="apiMinGb" value="1" step="0.5" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Max Size (GB)</label>
+                        <input type="number" id="apiMaxGb" value="100" step="0.5" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:13px;">
+                    </div>
+                </div>
+
+                <button onclick="saveApiEndpoint()" id="btnSaveApi" style="width:100%; background:var(--blue); border:none; color:white; padding:12px; border-radius:6px; font-weight:600; cursor:pointer; margin-top:8px;">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AFA API Settings Modal -->
+    <div id="afaApiModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:480px; padding:24px; position:relative;">
+            <button onclick="closeAfaApiModal()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 style="margin-top:0; font-size:18px;">AFA API Configuration</h3>
+            
+            <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+                <div>
+                    <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">AFA External Engine API Key</label>
+                    <input type="password" id="afaApiKey" placeholder="Enter API Key" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-family:monospace; font-size:13px;">
+                </div>
+
+                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--glass-border); border-radius:8px; padding:16px;">
+                    <label style="display:flex; align-items:center; gap:12px; cursor:pointer;">
+                        <input type="checkbox" id="afaApiEnabled" style="width:18px; height:18px; accent-color:#10b981;">
+                        <div>
+                            <span style="display:block; font-weight:600; font-size:14px; color:white;">Enable Auto-Provisioning</span>
+                            <span style="display:block; font-size:11px; color:var(--text-muted); margin-top:4px;">When enabled, new agents are automatically attached to the external provisioning engine.</span>
+                        </div>
+                    </label>
+                </div>
+
+                <button onclick="saveAfaApiSettings()" id="btnSaveAfaApi" style="width:100%; background:var(--blue); border:none; color:white; padding:12px; border-radius:6px; font-weight:600; cursor:pointer; margin-top:8px;">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-api.js"></script>
+    <script src="js/pwa-install.js"></script>
+</body>
+</html>

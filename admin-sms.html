@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Gateways | Data4Ghana Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    
+    <meta name="theme-color" content="#020817">
+</head>
+<body>
+    
+    <div id="admin-sidebar-container"></div>
+    
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+            
+            <div class="page-title-group" style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">SMS Gateways</h1>
+            </div>
+            
+            <div class="admin-profile" style="z-index: 2; position: relative;">
+                <span class="status-live">Transactions Online</span>
+            </div>
+        </header>
+
+        <div id="tab-gateways" class="tab-content active">
+            <div class="minimal-header" style="text-align: center;">
+                <h3>SMS Provider Infrastructure</h3>
+                <p>Manage API keys and set the active provider for platform notifications.</p>
+            </div>
+
+            <div id="providersContainer" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:24px; margin-top:32px;">
+                <!-- Injected by JS -->
+            </div>
+
+            <!-- Network SMS Controls -->
+            <div style="margin-top:60px; padding-top:40px; border-top:1px solid rgba(255,255,255,0.05);">
+                <div class="minimal-header" style="text-align: center;">
+                    <h3>Network SMS Controls</h3>
+                    <p>Globally enable or disable SMS notifications for specific telecom networks.</p>
+                </div>
+                <div style="display:flex; justify-content:center; gap:24px; margin-top:32px; flex-wrap:wrap;">
+                    <!-- MTN -->
+                    <div class="glass-card" style="padding:24px; width:220px; text-align:center;">
+                        <h4 style="margin:0 0 16px 0; color:#eab308; font-size:18px;">MTN</h4>
+                        <label style="display:flex; align-items:center; justify-content:center; gap:12px; cursor:pointer;">
+                            <input type="checkbox" id="toggleSMS_MTN" onchange="toggleNetworkSMS('MTN', this.checked)" style="width:18px; height:18px; accent-color:#10b981;">
+                            <span id="labelSMS_MTN" style="font-weight:bold; font-size:14px; color:var(--text-muted);">Loading...</span>
+                        </label>
+                    </div>
+                    <!-- Telecel -->
+                    <div class="glass-card" style="padding:24px; width:220px; text-align:center;">
+                        <h4 style="margin:0 0 16px 0; color:#ef4444; font-size:18px;">Telecel</h4>
+                        <label style="display:flex; align-items:center; justify-content:center; gap:12px; cursor:pointer;">
+                            <input type="checkbox" id="toggleSMS_Telecel" onchange="toggleNetworkSMS('Telecel', this.checked)" style="width:18px; height:18px; accent-color:#10b981;">
+                            <span id="labelSMS_Telecel" style="font-weight:bold; font-size:14px; color:var(--text-muted);">Loading...</span>
+                        </label>
+                    </div>
+                    <!-- AT -->
+                    <div class="glass-card" style="padding:24px; width:220px; text-align:center;">
+                        <h4 style="margin:0 0 16px 0; color:#3b82f6; font-size:18px;">AT</h4>
+                        <label style="display:flex; align-items:center; justify-content:center; gap:12px; cursor:pointer;">
+                            <input type="checkbox" id="toggleSMS_AT" onchange="toggleNetworkSMS('AT', this.checked)" style="width:18px; height:18px; accent-color:#10b981;">
+                            <span id="labelSMS_AT" style="font-weight:bold; font-size:14px; color:var(--text-muted);">Loading...</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Provider Edit Modal -->
+    <div id="providerEditModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:450px; padding:24px; position:relative;">
+            <button onclick="closeProviderEditModal()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 id="pemTitle" style="margin-top:0; font-size:18px;">Update SMS Configuration</h3>
+            
+            <input type="hidden" id="pemId">
+            <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+                <div>
+                    <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">API Key</label>
+                    <input type="password" id="pemApiKey" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-family:monospace; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Sender ID</label>
+                    <input type="text" id="pemSenderId" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-family:monospace; font-size:13px;" maxlength="11">
+                </div>
+                <button onclick="saveProviderKeys()" id="btnSaveProvider" style="width:100%; background:var(--blue); border:none; color:white; padding:12px; border-radius:6px; font-weight:600; cursor:pointer; margin-top:8px;">Save Credentials</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-sms.js"></script>
+</body>
+</html>

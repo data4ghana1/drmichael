@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Mode Engine | Data4Ghana Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+
+    <meta name="theme-color" content="#020817">
+</head>
+
+<body>
+
+    <div id="admin-sidebar-container"></div>
+
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+
+            <div class="page-title-group"
+                style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">Control Engine</h1>
+            </div>
+
+            <div class="admin-profile" style="z-index: 2; position: relative;">
+                <span class="status-live">Pilot Program Active</span>
+            </div>
+        </header>
+
+        <div id="tab-freemode" class="tab-content active">
+            <!-- Removed Global Config Section -->
+
+            <!-- Active User List -->
+            <div class="minimal-header" style="text-align: center; margin-bottom: 24px;">
+                <p>Manage individual access to the Free Mode pilot.</p>
+            </div>
+
+            <div class="table-responsive mt-6" style="max-height:50vh; overflow:auto;">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th>User Identity</th>
+                            <th>Email Address</th>
+                            <th>Merchant ID</th>
+                            <th>Balance Owed</th>
+                            <th>Feature Status</th>
+                            <th style="text-align:right;">Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fmUsersBody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-freemode.js"></script>
+</body>
+
+</html>

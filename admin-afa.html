@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFA Registrations | Data4Ghana Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+
+    <meta name="theme-color" content="#020817">
+</head>
+
+<body>
+
+    <div id="admin-sidebar-container"></div>
+
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+
+            <div class="page-title-group"
+                style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">AFA PORTAL</h1>
+            </div>
+
+            <div class="admin-profile" style="z-index: 2; position: relative;">
+                <span class="status-live">Review Pending</span>
+            </div>
+        </header>
+
+        <div id="tab-afa" class="tab-content active">
+            <div class="minimal-header" style="text-align: center;">
+                <h3>AFA Agent Onboarding</h3>
+                <p>Verify identity documents and approve agent status.</p>
+                <button onclick="openAfaSettingsModal()" style="background:var(--blue); color:white; border:none; padding:10px 24px; border-radius:8px; font-weight:700; cursor:pointer; margin-top:8px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">⚙️ AFA Pricing & Settings</button>
+            </div>
+
+            <div class="table-responsive mt-6"
+                style="max-height:70vh; overflow:auto; border-bottom:1px solid var(--glass-border);">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Submitted</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Identity Info
+                            </th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Linked User</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Current Status
+                            </th>
+                            <th
+                                style="position:sticky; top:0; background:var(--bg-dark); z-index:10; text-align:right;">
+                                Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="afaTableBody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Review Modal -->
+    <div id="afaReviewModal"
+        style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div
+            style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:800px; padding:24px; position:relative; max-height:90vh; overflow-y:auto; display:flex; flex-direction:column; gap:20px;">
+            <button onclick="closeAfaReviewModal()"
+                style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 style="margin-top:0; font-size:18px;">Application Full Review</h3>
+
+            <input type="hidden" id="afmId">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+                <div
+                    style="background:rgba(255,255,255,0.02); padding:16px; border-radius:8px; border:1px solid var(--glass-border);">
+                    <h4
+                        style="margin-top:0; font-size:13px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">
+                        Applicant Details</h4>
+                    <div style="margin-bottom:10px;">
+                        <span style="display:block; font-size:11px; color:var(--text-muted);">Name</span>
+                        <strong style="color:white; font-size:15px;" id="afmName">-</strong>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <span style="display:block; font-size:11px; color:var(--text-muted);">Contact Phone</span>
+                        <strong style="color:white; font-size:15px;" id="afmPhone">-</strong>
+                    </div>
+                    <div>
+                        <span style="display:block; font-size:11px; color:var(--text-muted);">ID Details</span>
+                        <strong style="color:var(--blue); font-size:13px;" id="afmIdType">-</strong> <span
+                            id="afmIdNumber" style="color:white; font-size:13px;">-</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div id="afmFrontContainer"
+                        style="height:150px; background:black; border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid var(--glass-border); overflow:hidden;">
+                    </div>
+                    <div id="afmBackContainer"
+                        style="height:150px; background:black; border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid var(--glass-border); overflow:hidden;">
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.05);">
+                <button onclick="updateAfaStatus(document.getElementById('afmId').value, 'rejected')"
+                    style="background:rgba(239,68,68,0.1); border:1px solid #ef4444; color:#ef4444; padding:12px 24px; border-radius:6px; font-weight:600; cursor:pointer;">Reject
+                    Application</button>
+                <button onclick="updateAfaStatus(document.getElementById('afmId').value, 'approved')"
+                    style="background:#10b981; border:none; color:white; padding:12px 24px; border-radius:6px; font-weight:600; cursor:pointer;">Approve
+                    Application</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AFA Global Settings Modal -->
+    <div id="afaSettingsModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:550px; padding:24px; position:relative;">
+            <button onclick="closeAfaSettingsModal()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 style="margin-top:0; font-size:18px;">AFA Role-Based Pricing</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-top:-10px; margin-bottom:20px;">Configure registration fees per role.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <table style="width:100%; text-align:left; border-collapse:collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--glass-border);">
+                            <th style="padding-bottom:12px; font-size:12px; color:var(--text-muted); font-weight:600;">Account Role</th>
+                            <th style="padding-bottom:12px; font-size:12px; color:var(--text-muted); font-weight:600;">Normal (₵)</th>
+                            <th style="padding-bottom:12px; font-size:12px; color:var(--text-muted); font-weight:600;">Premium (₵)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="afaPricingTbody">
+                        <!-- Populated via JS -->
+                        <tr><td colspan="3" style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;">Loading pricing matrix...</td></tr>
+                    </tbody>
+                </table>
+
+                <button onclick="saveAfaSettings()" id="btnSaveAfaSettings" style="width:100%; background:var(--blue); border:none; color:white; padding:12px; border-radius:6px; font-weight:600; cursor:pointer; margin-top:16px;">Save Pricing Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-afa.js"></script>
+</body>
+
+</html>

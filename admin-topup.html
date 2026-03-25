@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Funding Requests | Data4Ghana Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    
+    <meta name="theme-color" content="#020817">
+</head>
+<body>
+    
+    <div id="admin-sidebar-container"></div>
+    
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+            
+            <div class="page-title-group" style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">Wallet Top-up</h1>
+            </div>
+            
+            <div class="admin-profile" style="z-index: 2; position: relative;">
+                <span class="status-live">Action Required</span>
+            </div>
+        </header>
+
+        <div id="tab-topup" class="tab-content active">
+            <div class="minimal-header" style="text-align: center;">
+                <h3>Pending Top-up Requests</h3>
+                <p>Review and verify manual transfer receipts before approving wallet credits.</p>
+            </div>
+
+            <div class="table-responsive mt-6" style="max-height:75vh; overflow:auto; border-bottom:1px solid var(--glass-border);">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Requested At</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Amount / Method</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Reference Log</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10; text-align:right;">Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topupTableBody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-topup.js"></script>
+</body>
+</html>

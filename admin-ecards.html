@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Card Inventory Control | Data4Ghana Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    
+    <meta name="theme-color" content="#020817">
+</head>
+<body>
+    
+    <div id="admin-sidebar-container"></div>
+    
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+            
+            <div class="page-title-group" style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">E-Cards Inventory</h1>
+            </div>
+            
+            <div class="admin-profile" style="z-index: 2; position: relative;">
+                <span class="status-live">Pins Stocked</span>
+            </div>
+        </header>
+
+        <div id="tab-ecards" class="tab-content active">
+            <!-- Inventory Stats -->
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:24px;">
+                <div class="stat-card">
+                    <div class="stat-label">WASSCE Available</div>
+                    <div class="stat-value" id="ec_wassce_avail" style="color:#10b981;">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">BECE Available</div>
+                    <div class="stat-value" id="ec_bece_avail" style="color:#3b82f6;">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Used Pins</div>
+                    <div class="stat-value" id="ec_total_used" style="color:#f59e0b;">0</div>
+                </div>
+            </div>
+
+            <!-- Pricing Section -->
+            <div class="glass-card responsive-stack" style="padding:24px; margin-bottom:32px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+                    <h3 style="margin:0; font-size:15px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">E-Card Tiered Pricing</h3>
+                    <button onclick="saveEcardPrices()" class="btn-action" style="background:var(--blue); color:white; border:none; padding:8px 24px;">💾 Save Prices</button>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:32px;">
+                    <!-- WASSCE Pricing -->
+                    <div>
+                        <h4 style="margin:0 0 16px; font-size:14px; color:#10b981; border-bottom:1px solid rgba(16,185,129,0.2); padding-bottom:8px;">🎓 WASSCE Cards</h4>
+                        <div style="display:grid; grid-template-columns: 100px 1fr; gap:12px; align-items:center; margin-bottom:12px;">
+                            <label style="font-size:13px; font-weight:600; color:var(--text-muted);">Client Rate</label>
+                            <input type="number" id="ec_price_wassce_client" step="0.01" style="background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:4px; font-size:15px;">
+                        </div>
+                        <div style="display:grid; grid-template-columns: 100px 1fr; gap:12px; align-items:center;">
+                            <label style="font-size:13px; font-weight:600; color:var(--text-muted);">Elite Agent</label>
+                            <input type="number" id="ec_price_wassce_elite_agent" step="0.01" style="background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:4px; font-size:15px;">
+                        </div>
+                    </div>
+                    <!-- BECE Pricing -->
+                    <div>
+                        <h4 style="margin:0 0 16px; font-size:14px; color:#3b82f6; border-bottom:1px solid rgba(59,130,246,0.2); padding-bottom:8px;">📋 BECE Cards</h4>
+                        <div style="display:grid; grid-template-columns: 100px 1fr; gap:12px; align-items:center; margin-bottom:12px;">
+                            <label style="font-size:13px; font-weight:600; color:var(--text-muted);">Client Rate</label>
+                            <input type="number" id="ec_price_bece_client" step="0.01" style="background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:4px; font-size:15px;">
+                        </div>
+                        <div style="display:grid; grid-template-columns: 100px 1fr; gap:12px; align-items:center;">
+                            <label style="font-size:13px; font-weight:600; color:var(--text-muted);">Elite Agent</label>
+                            <input type="number" id="ec_price_bece_elite_agent" step="0.01" style="background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:4px; font-size:15px;">
+                        </div>
+                    </div>
+                </div>
+                <div id="ecPriceStatus" style="font-size:13px; color:var(--text-muted); margin-top:16px; text-align:right;"></div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="glass-card" style="padding:24px; margin-bottom:32px;">
+                <h3 style="margin:0 0 16px; font-size:15px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">Bulk PIN Ingestion</h3>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:24px;">
+                    <div>
+                        <label style="display:block; font-size:13px; font-weight:600; color:var(--text-muted); margin-bottom:8px;">Card Type</label>
+                        <select id="ecUploadType" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-size:15px;">
+                            <option value="ecard_wassce">WASSCE</option>
+                            <option value="ecard_bece">BECE</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:13px; font-weight:600; color:var(--text-muted); margin-bottom:8px;">Data Input (PIN / Serial pairs)</label>
+                        <textarea id="ecBulkInput" rows="5" placeholder="PIN: 1234567890 | SERIAL: XXXXXXX" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:15px; border-radius:8px; outline:none; font-family:monospace; font-size:15px;"></textarea>
+                        <button onclick="uploadEcardPins()" style="background:#10b981; color:white; border:none; padding:12px 32px; border-radius:8px; font-weight:700; margin-top:16px; font-size:15px; cursor:pointer;">⬆ Process & Ingest</button>
+                        <div id="ecUploadStatus" style="font-size:13px; font-weight:600; color:var(--text-muted); margin-top:12px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory List -->
+            <div class="minimal-header" style="text-align: center; display:flex; flex-direction:column; align-items:center; gap:16px;">
+                <p>Manage and track stock of examination scratch cards.</p>
+                <div style="display:flex; gap:12px; align-items:center; justify-content:center;">
+                    <select id="ecFilterType" onchange="loadEcardInventory()" style="background:var(--bg-dark); border:1px solid var(--glass-border); color:white; padding:6px 12px; border-radius:6px; font-size:12px;">
+                        <option value="">All Types</option>
+                        <option value="ecard_wassce">WASSCE</option>
+                        <option value="ecard_bece">BECE</option>
+                    </select>
+                    <select id="ecFilterStatus" onchange="loadEcardInventory()" style="background:var(--bg-dark); border:1px solid var(--glass-border); color:white; padding:6px 12px; border-radius:6px; font-size:12px;">
+                        <option value="">All Status</option>
+                        <option value="false">Available</option>
+                        <option value="true">Used</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive mt-6" style="max-height:50vh; overflow:auto;">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Category</th>
+                            <th>PIN Code</th>
+                            <th>Serial Key</th>
+                            <th>Status</th>
+                            <th>Used At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ecInventoryBody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-ecards.js"></script>
+</body>
+</html>

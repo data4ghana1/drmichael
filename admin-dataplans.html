@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Registry & Pricing | Data4Ghana Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+
+    <meta name="theme-color" content="#020817">
+</head>
+
+<body>
+    <div id="admin-sidebar-container"></div>
+
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+
+            <div class="page-title-group"
+                style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">Services</h1>
+            </div>
+        </header>
+
+        <div id="tab-dataplans" class="tab-content active">
+            <!-- Base Products Grid -->
+            <div class="minimal-header" style="margin-bottom:16px; text-align: center;">
+                <h3>Base Service Rates</h3>
+                <p>Configure fallback per-GB rates and AFA registration fees.</p>
+            </div>
+            <div id="baseProductsGrid"
+                style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; overflow:hidden; margin-bottom:32px;">
+                <!-- Injected by JS -->
+            </div>
+
+            <!-- Data Bundles Registry -->
+            <div class="minimal-header" style="text-align: center; margin-bottom: 24px;">
+                <button class="btn-primary" onclick="openBundleModal()"
+                    style="background:var(--blue); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;">
+                    + Add New Bundle
+                </button>
+            </div>
+
+            <div class="table-responsive mt-6"
+                style="max-height:55vh; overflow:auto; border-bottom:1px solid var(--glass-border);">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Network</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Package Name</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Capacity</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Validity</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10; text-align:right;">Rate</th>
+                            <th
+                                style="position:sticky; top:0; background:var(--bg-dark); z-index:10; text-align:right;">
+                                Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataPlansTableBody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Base Product Modal -->
+    <div id="baseProductModal"
+        style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div
+            style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:400px; padding:24px; position:relative;">
+            <button onclick="closeBaseProductModal()"
+                style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 id="bpModalTitle" style="margin-top:0; margin-bottom:16px;">Edit Base Service</h3>
+            <input type="hidden" id="bpProductKey">
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label
+                        style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Client
+                        Price</label>
+                    <input type="number" step="0.01" id="bpPriceClient"
+                        style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px;">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div>
+                        <label
+                            style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">VIP
+                            Customer</label>
+                        <input type="number" step="0.01" id="bpPriceVip"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px;">
+                    </div>
+                    <div>
+                        <label
+                            style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Elite
+                            Agent</label>
+                        <input type="number" step="0.01" id="bpPriceElite"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px;">
+                    </div>
+                    <div>
+                        <label
+                            style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Super
+                            Agent</label>
+                        <input type="number" step="0.01" id="bpPriceSuper"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px;">
+                    </div>
+                    <div>
+                        <label
+                            style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Admin
+                            Price</label>
+                        <input type="number" step="0.01" id="bpPriceAdmin"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px;">
+                    </div>
+                </div>
+                <button onclick="saveBaseProductPricing()" id="btnSaveBaseProduct"
+                    style="width:100%; background:var(--blue); border:none; color:white; padding:12px; border-radius:6px; font-weight:600; cursor:pointer;">Save
+                    Prices</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Plan Modal -->
+    <div id="dataPlanModal"
+        style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div
+            style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:500px; padding:24px; position:relative; max-height:90vh; overflow-y:auto;">
+            <button onclick="closeDataPlanModal()"
+                style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 id="dpModalTitle" style="margin-top:0; margin-bottom:8px;">Edit Bundle</h3>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:20px;">
+                <div>
+                    <label
+                        style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Network</label>
+                    <select id="dpNetwork"
+                        style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px;">
+                        <option value="data_mtn">MTN</option>
+                        <option value="data_mtn_express">MTN Express</option>
+                        <option value="data_tigo">AT / Ishare</option>
+                        <option value="data_telecel">Telecel</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Capacity
+                        (GB)</label>
+                    <input type="number" id="dpGbSize" step="0.1"
+                        style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px;">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Plan
+                        Name</label>
+                    <input type="text" id="dpPlanName"
+                        style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px;">
+                </div>
+                <div style="grid-column: span 2; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Price
+                            (Client)</label>
+                        <input type="number" id="dpPriceClient" step="0.01"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Price
+                            (VIP)</label>
+                        <input type="number" id="dpPriceVip" step="0.01"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Price
+                            (Elite Agent)</label>
+                        <input type="number" id="dpPriceElite" step="0.01"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Price
+                            (Super Agent)</label>
+                        <input type="number" id="dpPriceSuper" step="0.01"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Price
+                            (Admin)</label>
+                        <input type="number" id="dpPriceAdmin" step="0.01"
+                            style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px;">
+                    </div>
+                </div>
+                <button onclick="saveDataPlan()"
+                    style="grid-column: span 2; background:var(--blue); border:none; color:white; padding:12px; border-radius:6px; font-weight:600; cursor:pointer;"
+                    id="btnSaveDataPlan">Confirm & Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-dataplans.js"></script>
+</body>
+
+</html>

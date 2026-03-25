@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Resolution Center | Data4Ghana Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    
+    <meta name="theme-color" content="#020817">
+</head>
+<body>
+    
+    <div id="admin-sidebar-container"></div>
+    
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+            
+            <div class="page-title-group" style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">Support Tickets</h1>
+            </div>
+            
+            <div class="admin-profile" style="z-index: 2; position: relative;">
+                <span class="status-live">Agent Active</span>
+            </div>
+        </header>
+
+        <div id="tab-tickets" class="tab-content active">
+            <div class="minimal-header" style="text-align: center;">
+                <h3>Customer Support Tickets</h3>
+                <p>Respond to user issues and track resolution status.</p>
+            </div>
+
+            <div class="table-responsive mt-6" style="max-height:75vh; overflow:auto; border-bottom:1px solid var(--glass-border);">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Submitted</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Requester</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Issue Snippet</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10;">Status</th>
+                            <th style="position:sticky; top:0; background:var(--bg-dark); z-index:10; text-align:right;">Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTableBody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Ticket Review Modal -->
+    <div id="ticketReviewModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:700px; padding:24px; position:relative; max-height:90vh; overflow-y:auto; display:flex; flex-direction:column; gap:20px;">
+            <button onclick="closeTicketReviewModal()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 style="margin:0; font-size:18px;">Review Ticket <span id="trmTicketId" style="color:var(--blue);"></span></h3>
+            
+            <input type="hidden" id="trmId">
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div style="background:rgba(255,255,255,0.02); padding:16px; border-radius:8px; border:1px solid var(--glass-border);">
+                        <h4 style="margin-top:0; font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px;">Requester Details</h4>
+                        <div style="margin-bottom:8px;">
+                            <span style="display:block; font-size:11px; color:var(--text-muted);">Account</span>
+                            <strong style="color:white; font-size:14px;" id="trmUser">-</strong>
+                        </div>
+                        <div>
+                            <span style="display:block; font-size:11px; color:var(--text-muted);">Phone</span>
+                            <strong style="color:white; font-size:14px;" id="trmPhone">-</strong>
+                        </div>
+                        <div style="margin-top:12px;">
+                            <span style="display:block; font-size:11px; color:var(--text-muted);">Linked Order</span>
+                            <a href="#" id="trmOrderLink" style="color:var(--blue); font-size:13px; text-decoration:none; font-weight:600;">-</a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:8px;">Reported Issue</label>
+                        <div id="trmIssueText" style="background:black; padding:12px; border-radius:8px; border:1px solid var(--glass-border); color:white; font-size:13px; min-height:80px; white-space:pre-wrap;"></div>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:8px;">Evidence Attachment</label>
+                        <div style="background:black; height:200px; border-radius:8px; border:1px dashed var(--glass-border); display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                            <span id="trmNoImage" style="color:var(--text-muted); font-size:12px;">No image attached</span>
+                            <a id="trmImageLink" href="#" target="_blank" style="display:none; width:100%; height:100%;">
+                                <img id="trmImage" src="" style="width:100%; height:100%; object-fit:contain;">
+                            </a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:8px;">Admin Response</label>
+                        <textarea id="trmAdminReply" rows="4" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:8px; outline:none; font-size:13px; font-family:inherit; resize:none;" placeholder="Type your reply here..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.05); padding-top:16px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <label style="font-size:12px; color:var(--text-muted); font-weight:600;">Update Status</label>
+                    <select id="trmStatus" style="background:black; border:1px solid var(--glass-border); color:white; padding:10px; border-radius:6px; outline:none; font-size:13px;">
+                        <option value="checking">Checking</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+                <button id="btnSaveTicket" onclick="saveTicketReview()" style="background:#10b981; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:600; cursor:pointer;">Update Ticket Resolution</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-tickets.js"></script>
+</body>
+</html>

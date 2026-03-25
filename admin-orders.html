@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Orders | Data4Ghana Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    
+    <meta name="theme-color" content="#020817">
+</head>
+<body>
+    
+    <div id="admin-sidebar-container"></div>
+    
+    <main class="master-main">
+        <header class="top-nav">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+                <div class="page-title-group">
+                    <h1 id="pageTitle">Global Orders</h1>
+                </div>
+            </div>
+            <div class="admin-profile">
+                <span class="status-live">System Live</span>
+            </div>
+        </header>
+
+        <div id="tab-orders" class="tab-content active">
+            <div class="minimal-header" style="margin-bottom: 24px;">
+                <h3>Global Order Ledger</h3>
+            </div>
+            
+            <div class="metrics-hero force-grid-2" style="margin-bottom: 32px;">
+                <div class="metric-text-group">
+                    <div class="label">Total Orders (All Time)</div>
+                    <div class="huge-number" id="globalMetricTotal">0</div>
+                </div>
+                <div class="metric-text-group">
+                    <div class="label" style="color:var(--emerald);">Completed</div>
+                    <div class="huge-number text-emerald" id="globalMetricCompleted">0</div>
+                </div>
+                <div class="metric-text-group">
+                    <div class="label" style="color:var(--amber);">Processing</div>
+                    <div class="huge-number" id="globalMetricProcessing" style="color:#fbbf24;">0</div>
+                </div>
+                <div class="metric-text-group">
+                    <div class="label" style="color:#ef4444;">Failed</div>
+                    <div class="huge-number" id="globalMetricFailed" style="color:#ef4444;">0</div>
+                </div>
+            </div>
+
+            <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; padding:16px 24px; margin-bottom:24px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:end;">
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Phone Number</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="text" id="filterPhone" oninput="smartPhoneSearch()" placeholder="Search by phone..." style="flex:1; background:black; border:1px solid var(--glass-border); color:white; padding:10px 12px; border-radius:6px; outline:none; font-size:13px;">
+                            <button onclick="selectFromPhoneUp()" title="Select all orders above this phone number" style="background:rgba(255,255,255,0.08); border:1px solid var(--glass-border); color:white; padding:10px 12px; border-radius:6px; cursor:pointer; font-size:14px; flex-shrink:0;">↑</button>
+                            <button onclick="selectFromPhoneDown()" title="Select all orders below this phone number" style="background:rgba(255,255,255,0.08); border:1px solid var(--glass-border); color:white; padding:10px 12px; border-radius:6px; cursor:pointer; font-size:14px; flex-shrink:0;">↓</button>
+                        </div>
+                        <div id="phoneStatusHint" style="margin-top:6px; font-size:11px; color:#fbbf24; display:none;"></div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Status</label>
+                        <select id="filterStatus" onchange="applyOrderFilters()" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px 12px; border-radius:6px; outline:none; font-size:13px;">
+                            <option value="">All Statuses</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Success">Success</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Transit">In Transit</option>
+                            <option value="Waiting">Waiting</option>
+                            <option value="Undelivered">Undelivered</option>
+                            <option value="Received">Received</option>
+                            <option value="Failed">Failed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Network</label>
+                        <select id="filterNetwork" onchange="applyOrderFilters()" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:10px 12px; border-radius:6px; outline:none; font-size:13px;">
+                            <option value="">All Networks</option>
+                            <option value="MTN">MTN</option>
+                            <option value="Telecel">Telecel</option>
+                            <option value="Ishare">Ishare</option>
+                            <option value="Glo">Glo</option>
+                            <option value="BigTime">BigTime</option>
+                            <option value="Ishare">Ishare</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Date</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="date" id="filterDate" onchange="applyOrderFilters()" style="width:100%; background:black; border:1px solid var(--glass-border); color:var(--text-muted); padding:10px 12px; border-radius:6px; outline:none; font-size:13px; color-scheme:dark;">
+                            <button class="btn-action" onclick="resetOrderFilters()" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:white; padding:10px 16px; margin:0; cursor:pointer; flex-shrink:0;" title="Reset Filters">🔄</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container-scroll mt-6">
+                <!-- Bulk Actions Toolbar -->
+                <div id="bulkActionsBar" style="display:none; background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:8px; padding:12px 16px; margin-bottom:16px; align-items:center; gap:16px; flex-wrap:wrap;">
+                    <span style="font-size:13px; font-weight:600; color:var(--blue);"><span id="bulkSelectCount">0</span> Selected</span>
+                    <div style="width:1px; height:20px; background:var(--glass-border);"></div>
+                    <select id="bulkStatusSelect" style="background:black; border:1px solid var(--glass-border); color:white; padding:8px 12px; border-radius:6px; outline:none; font-size:13px;">
+                        <option value="">Update Status...</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Failed">Failed</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                    
+                    <button class="btn-action" onclick="executeBulkUpdateStatus()" style="background:var(--blue); border-color:var(--blue); color:white; margin:0;">Update Status</button>
+                    <div style="width:1px; height:20px; background:var(--glass-border);"></div>
+                    <button class="btn-action" onclick="executeBulkExport()" style="background:rgba(255,255,255,0.1); margin:0;">Export Excel</button>
+                    <button class="btn-action" onclick="executeBulkCopy()" style="background:rgba(255,255,255,0.1); margin:0;">📋 Copy</button>
+                    <button class="btn-action" onclick="executeBulkWhatsApp()" style="background:#25D366; border-color:#25D366; color:white; margin:0;">WhatsApp</button>
+                    <div style="width:1px; height:20px; background:var(--glass-border);"></div>
+                    <button onclick="window.globalSelectedOrderIds.clear(); restoreRowCheckboxStates();" style="background:transparent; color:white; border:none; font-size:12px; cursor:pointer; opacity:0.8; margin-left:8px;">Cancel</button>
+                </div>
+
+                <table class="master-table-premium">
+                    <thead>
+                        <tr>
+                            <th style="width:40px; text-align:center;"><input type="checkbox" id="masterCheckbox" onclick="toggleAllBulkSelect()"></th>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Vector</th>
+                            <th>Value</th>
+                            <th>State</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allOrdersTableBody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div id="ordersPagination" style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; align-items: center;">
+                <button class="btn-action" id="prevOrdersBtn" onclick="changeOrdersPage(-1)" disabled style="margin:0;">Previous</button>
+                <span id="ordersPageInfo" style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Page 1</span>
+                <button class="btn-action" id="nextOrdersBtn" onclick="changeOrdersPage(1)" style="margin:0;">Next</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-modals.js"></script>
+    <script src="js/admin-orders.js"></script>
+</body>
+</html>

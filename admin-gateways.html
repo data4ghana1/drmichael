@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Gateway Engine | Data4Ghana Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-dashboard.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
+    
+    <meta name="theme-color" content="#020817">
+</head>
+<body>
+    
+    <div id="admin-sidebar-container"></div>
+    
+    <main class="master-main">
+        <header class="top-nav" style="position: relative;">
+            <div style="display:flex; align-items:center; gap:16px; z-index: 2; position: relative;">
+                <button class="admin-menu-btn" onclick="toggleAdminMenu()">☰</button>
+            </div>
+            
+            <div class="page-title-group" style="position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; z-index: 1;">
+                <h1 id="pageTitle" style="pointer-events: auto;">Payment Gateway</h1>
+            </div>
+            
+            <div class="admin-profile" style="z-index: 2; position: relative;">
+                <span class="status-live">Transactions Online</span>
+            </div>
+        </header>
+
+        <div id="tab-gateways" class="tab-content active">
+            <div class="minimal-header" style="text-align: center;">
+                <h3>Gateway Infrastructure</h3>
+                <p>Manage merchant keys and toggle live/test environments for platform funding.</p>
+            </div>
+
+            <div id="gatewaysContainer" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:24px; margin-top:32px;">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Gateway Edit Modal -->
+    <div id="gatewayEditModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--bg-dark); border:1px solid var(--glass-border); border-radius:12px; width:100%; max-width:450px; padding:24px; position:relative;">
+            <button onclick="closeGatewayEditModal()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:20px;">×</button>
+            <h3 id="gemTitle" style="margin-top:0; font-size:18px;">Update Gateway Credentials</h3>
+            
+            <input type="hidden" id="gemId">
+            <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+                <div>
+                    <label id="labelPublicKey" style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Public Key</label>
+                    <input type="text" id="gemPublicKey" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-family:monospace; font-size:13px;">
+                </div>
+                <div>
+                    <label id="labelSecretKey" style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Secret Key</label>
+                    <input type="password" id="gemSecretKey" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-family:monospace; font-size:13px;">
+                </div>
+                <div id="webhookContainer">
+                    <label id="labelWebhookSecret" style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:600;">Webhook Secret</label>
+                    <input type="password" id="gemWebhookSecret" style="width:100%; background:black; border:1px solid var(--glass-border); color:white; padding:12px; border-radius:6px; font-family:monospace; font-size:13px;">
+                </div>
+                <button onclick="saveGatewayKeys()" id="btnSaveGateway" style="width:100%; background:var(--blue); border:none; color:white; padding:12px; border-radius:6px; font-weight:600; cursor:pointer; margin-top:8px;">Save Credentials</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-core.js"></script>
+    <script src="js/admin-menu.js"></script>
+    <script src="js/admin-gateways.js"></script>
+</body>
+</html>
